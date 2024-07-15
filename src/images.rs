@@ -4,6 +4,7 @@ use crate::{draw, Point, Rect, Size};
 use egui::{Color32, ColorImage};
 use std::array;
 
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Images {
     pub apple: ColorImage,
     pub organics: ColorImage,
@@ -11,6 +12,7 @@ pub struct Images {
     pub bot: BotImage,
 }
 
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct BotImage {
     pub head: [ColorImage; 8],
     pub body: ColorImage,
