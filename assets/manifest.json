@@ -1,6 +1,6 @@
 {
-  "name": "egui Template PWA",
-  "short_name": "egui-template-pwa",
+  "name": "biobots",
+  "short_name": "biobots",
   "icons": [
     {
       "src": "./icon-256.png",
