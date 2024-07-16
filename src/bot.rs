@@ -1,4 +1,5 @@
 use crate::Point;
+use std::fmt::{Display, Formatter};
 use std::ops::Add;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -80,5 +81,24 @@ impl Add for Direction {
     fn add(self, rhs: Self) -> Self::Output {
         // SAFETY: safe to call unwrap() because of mod-8 adding
         ((self as u32 + rhs as u32) & 0b111).try_into().unwrap()
+    }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Direction::N => "North",
+                Direction::NW => "North-West",
+                Direction::W => "West",
+                Direction::SW => "South-West",
+                Direction::S => "South",
+                Direction::SE => "South-East",
+                Direction::E => "East",
+                Direction::NE => "North-East",
+            }
+        )
     }
 }

@@ -37,8 +37,8 @@ fn create_apple() -> ColorImage {
                 field::CELL_SIZE_HALF as isize - x as isize,
                 field::CELL_SIZE_HALF as isize - y as isize,
             );
-            if (x_dist * x_dist) as usize + (y_dist * y_dist) as usize
-                <= field::CELL_SIZE_HALF * field::CELL_SIZE_HALF
+            if ((x_dist * x_dist) as usize + (y_dist * y_dist) as usize)
+                < field::CELL_SIZE_HALF * field::CELL_SIZE_HALF
             {
                 apple[(x, y)] = drawing::APPLE_DRAW_COLOR_RGBA;
             }

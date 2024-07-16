@@ -1,11 +1,26 @@
 use crate::images::Images;
+use egui::{Image, TextureHandle, TextureOptions};
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Default)]
+#[derive(Eq, PartialEq)]
+struct BotTextures {
+    head: [TextureHandle; 8],
+    body: TextureHandle,
+}
+
+#[derive(Eq, PartialEq)]
+struct ImageTextures {
+    apple: TextureHandle,
+    organics: TextureHandle,
+    rock: TextureHandle,
+    bot: BotTextures,
+}
+
+#[derive(Deserialize, Serialize, Eq, PartialEq, Default)]
 #[serde(default)]
 pub struct TemplateApp {
     #[serde(skip)]
-    images: Images,
+    images: Option<ImageTextures>,
 }
 
 impl TemplateApp {
@@ -19,7 +34,37 @@ impl TemplateApp {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
 
-        Default::default()
+        Self { ..Self::default() }
+    }
+
+    fn images(&mut self, ui: &'_ mut egui::Ui) -> &ImageTextures {
+        self.images.get_or_insert_with(|| {
+            let images = Images::default();
+            ImageTextures {
+                apple: ui
+                    .ctx()
+                    .load_texture("apple", images.apple, TextureOptions::default()),
+                organics: ui.ctx().load_texture(
+                    "organics",
+                    images.organics,
+                    TextureOptions::default(),
+                ),
+                rock: ui
+                    .ctx()
+                    .load_texture("rock", images.rock, TextureOptions::default()),
+                bot: BotTextures {
+                    head: images.bot.head.map(|image| {
+                        ui.ctx()
+                            .load_texture("bot-head", image, TextureOptions::default())
+                    }),
+                    body: ui.ctx().load_texture(
+                        "bot-body",
+                        images.bot.body,
+                        TextureOptions::default(),
+                    ),
+                },
+            }
+        })
     }
 }
 
@@ -35,13 +80,16 @@ impl eframe::App for TemplateApp {
             egui::menu::bar(ui, |ui| {
                 let is_web = cfg!(target_arch = "wasm32");
                 ui.menu_button("File", |ui| {
-                    // NOTE: no File->Quit on web pages
-                    if !is_web && ui.button("Quit").clicked() {
-                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-                    }
                     if let Some(storage) = frame.storage_mut() {
                         if ui.button("Save").clicked() {
                             self.save(storage);
+                        }
+                    }
+                    // NOTE: no File->Quit on web pages
+                    if !is_web {
+                        ui.separator();
+                        if ui.button("Quit").clicked() {
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                         }
                     }
                 });
@@ -56,14 +104,15 @@ impl eframe::App for TemplateApp {
             ui.heading("biobots");
 
             ui.horizontal(|ui| {
-                ui.label("Write something: ");
-                // ui.text_edit_singleline(&mut self.label);
+                let images = self.images(ui);
+                ui.add(Image::new(&images.organics));
+                ui.add(Image::new(&images.apple));
+                ui.add(Image::new(&images.rock));
+                ui.add(Image::new(&images.bot.body));
+                for head in &images.bot.head {
+                    ui.add(Image::new(head));
+                }
             });
-
-            // ui.add(egui::Slider::new(&mut self.value, 0.0..=10.0).text("value"));
-            if ui.button("Increment").clicked() {
-                // self.value += 1.0;
-            }
 
             ui.separator();
 
