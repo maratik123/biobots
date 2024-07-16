@@ -117,6 +117,7 @@ impl eframe::App for TemplateApp {
                         ui.separator();
                         if ui.button("Quit").clicked() {
                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                            ui.close_menu();
                         }
                     }
                 });
