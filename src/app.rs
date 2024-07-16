@@ -1,14 +1,21 @@
+use crate::bot::Direction;
 use crate::images::Images;
-use egui::{Image, TextureHandle, TextureOptions};
+use base64::engine::general_purpose;
+use core::hash;
+use egui::{Color32, Image, Sense, TextureHandle, TextureOptions};
+use rand::{Fill, Rng, SeedableRng};
+use rand_seeder::SipHasher;
+use rand_xoshiro::Xoshiro256PlusPlus;
 use serde::{Deserialize, Serialize};
+use std::io::Write;
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Clone)]
 struct BotTextures {
     head: [TextureHandle; 8],
     body: TextureHandle,
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Clone)]
 struct ImageTextures {
     apple: TextureHandle,
     organics: TextureHandle,
@@ -16,11 +23,30 @@ struct ImageTextures {
     bot: BotTextures,
 }
 
-#[derive(Deserialize, Serialize, Eq, PartialEq, Default)]
+#[derive(Deserialize, Serialize, Eq, PartialEq)]
 #[serde(default)]
 pub struct TemplateApp {
     #[serde(skip)]
     images: Option<ImageTextures>,
+    bot_head: Direction,
+    bot_color: Color32,
+    lock_initial_seed: bool,
+    initial_seed: String,
+    rng: Xoshiro256PlusPlus,
+}
+
+impl Default for TemplateApp {
+    fn default() -> Self {
+        let initial_seed = generate_initial_seed();
+        Self {
+            images: Default::default(),
+            bot_head: Default::default(),
+            bot_color: Color32::WHITE,
+            lock_initial_seed: false,
+            rng: new_seeded_rand(&initial_seed),
+            initial_seed,
+        }
+    }
 }
 
 impl TemplateApp {
@@ -31,10 +57,10 @@ impl TemplateApp {
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
         if let Some(storage) = cc.storage {
-            return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
+            eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
+        } else {
+            Default::default()
         }
-
-        Self { ..Self::default() }
     }
 
     fn images(&mut self, ui: &'_ mut egui::Ui) -> &ImageTextures {
@@ -83,6 +109,7 @@ impl eframe::App for TemplateApp {
                     if let Some(storage) = frame.storage_mut() {
                         if ui.button("Save").clicked() {
                             self.save(storage);
+                            ui.close_menu();
                         }
                     }
                     // NOTE: no File->Quit on web pages
@@ -104,13 +131,29 @@ impl eframe::App for TemplateApp {
             ui.heading("biobots");
 
             ui.horizontal(|ui| {
-                let images = self.images(ui);
+                let images = self.images(ui).clone();
                 ui.add(Image::new(&images.organics));
                 ui.add(Image::new(&images.apple));
                 ui.add(Image::new(&images.rock));
                 ui.add(Image::new(&images.bot.body));
                 for head in &images.bot.head {
                     ui.add(Image::new(head));
+                }
+                let bot_body = ui.add(
+                    Image::new(&images.bot.body)
+                        .tint(self.bot_color)
+                        .sense(Sense::click()),
+                );
+                if ui.is_rect_visible(bot_body.rect) {
+                    Image::new(&images.bot.head[self.bot_head as usize])
+                        .paint_at(ui, bot_body.rect);
+                }
+                if bot_body.clicked() {
+                    self.bot_head += Direction::SE;
+                    let mut rgb = [0u8; 3];
+                    self.rng.fill(&mut rgb);
+                    let [r, g, b] = rgb;
+                    self.bot_color = Color32::from_rgb(r, g, b);
                 }
             });
 
@@ -146,4 +189,28 @@ fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
         );
         ui.label(".");
     });
+}
+
+fn generate_initial_seed() -> String {
+    let mut initial_seed = [0u8; 12];
+    rand::thread_rng().fill(&mut initial_seed);
+    let mut writer = base64::write::EncoderStringWriter::from_consumer(
+        String::with_capacity(base64::encoded_len(initial_seed.len(), false).unwrap()),
+        &general_purpose::STANDARD_NO_PAD,
+    );
+    writer.write_all(&initial_seed).unwrap();
+    writer.into_inner()
+}
+
+fn new_seeded_rand<H, R>(h: H) -> R
+where
+    H: hash::Hash,
+    R: SeedableRng,
+    R::Seed: Fill,
+{
+    let hasher = SipHasher::from(h);
+    let mut hasher_rng = hasher.into_rng();
+    let mut seed = R::Seed::default();
+    hasher_rng.fill(&mut seed);
+    R::from_seed(seed)
 }

@@ -1,7 +1,7 @@
 use egui::Color32;
 
 pub mod field {
-    pub const CELL_SIZE: usize = 8;
+    pub const CELL_SIZE: usize = 32;
     pub const CELL_SIZE_HALF: usize = CELL_SIZE / 2;
 }
 

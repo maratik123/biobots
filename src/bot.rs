@@ -1,9 +1,11 @@
 use crate::Point;
+use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use std::ops::Add;
+use std::ops::{Add, AddAssign};
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Deserialize, Serialize, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub enum Direction {
+    #[default]
     N = 0b000,
     NW = 0b001,
     W = 0b010,
@@ -81,6 +83,12 @@ impl Add for Direction {
     fn add(self, rhs: Self) -> Self::Output {
         // SAFETY: safe to call unwrap() because of mod-8 adding
         ((self as u32 + rhs as u32) & 0b111).try_into().unwrap()
+    }
+}
+
+impl AddAssign for Direction {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
     }
 }
 
