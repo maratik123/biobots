@@ -23,6 +23,7 @@ rand_xoshiro = { version = "0.6", features = ["serde1"] }
 rand_seeder = "0.2"
 getrandom = { version = "0.2", features = ["js"] }
 base64 = "0.22"
+web-time = "1"
 
 # You only need serde if you want app persistence:
 serde = { version = "1", features = ["derive"] }
