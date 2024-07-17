@@ -78,7 +78,7 @@ impl Default for TemplateApp {
             initial_seed,
             is_dark: Default::default(),
             show_settings: Default::default(),
-            auto_save: Some(AutoSaveSec::Fifteen),
+            auto_save: None,
             last_save: Instant::now(),
         }
     }
