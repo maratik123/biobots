@@ -1,5 +1,6 @@
 use crate::Point;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, AddAssign};
 
@@ -93,7 +94,7 @@ impl AddAssign for Direction {
 }
 
 impl Display for Direction {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{}",

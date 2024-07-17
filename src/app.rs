@@ -7,7 +7,9 @@ use rand::{Fill, Rng, SeedableRng};
 use rand_seeder::SipHasher;
 use rand_xoshiro::Xoshiro256PlusPlus;
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter};
+use std::borrow::Cow;
+use std::fmt;
+use std::fmt::{Debug, Display, Formatter};
 use std::io::Write;
 use std::time::Duration;
 use web_time::Instant;
@@ -44,7 +46,7 @@ impl AutoSaveSec {
 }
 
 impl Display for AutoSaveSec {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.duration())
     }
 }
@@ -187,43 +189,46 @@ impl TemplateApp {
 
     fn settings_window(&mut self, ctx: &egui::Context) {
         egui::Window::new("🔧 Settings")
-            .auto_sized()
             .open(&mut self.show_settings)
             .show(ctx, |ui| {
-                ui.vertical(|ui| {
-                    ui.checkbox(&mut self.lock_initial_seed, "Lock initial seed")
-                        .on_hover_text("Lock initial seed on start new simulation");
-                    ui.horizontal(|ui| {
-                        ui.label("Initial seed:");
-                        ui.text_edit_singleline(&mut self.initial_seed);
-                        if ui.button("⟳").clicked() {
-                            self.initial_seed = generate_initial_seed();
-                        }
-                    });
-                    ui.separator();
-                    ui.horizontal_top(|ui| {
-                        ui.label("Auto save:");
-                        ui.vertical(|ui| {
-                            ui.radio_value(&mut self.auto_save, None, "Disabled");
-                            let mut radio_value = |auto_save| {
-                                ui.radio_value(
-                                    &mut self.auto_save,
-                                    Some(auto_save),
-                                    format!("{}", auto_save),
-                                );
-                            };
-                            radio_value(AutoSaveSec::One);
-                            radio_value(AutoSaveSec::Five);
-                            radio_value(AutoSaveSec::Fifteen);
-                        });
-                    });
+                ui.checkbox(&mut self.lock_initial_seed, "Lock initial seed")
+                    .on_hover_text("Lock initial seed on start new simulation");
+                ui.horizontal(|ui| {
+                    ui.label("Initial seed:");
+                    ui.text_edit_singleline(&mut self.initial_seed);
+                    if ui.button("⟳").clicked() {
+                        self.initial_seed = generate_initial_seed();
+                    }
                 });
+                ui.collapsing(
+                    format!("Auto save: {}", auto_save_to_string(self.auto_save)),
+                    |ui| {
+                        let mut radio_value = |auto_save| {
+                            ui.radio_value(
+                                &mut self.auto_save,
+                                auto_save,
+                                auto_save_to_string(auto_save),
+                            );
+                        };
+                        radio_value(None);
+                        radio_value(Some(AutoSaveSec::One));
+                        radio_value(Some(AutoSaveSec::Five));
+                        radio_value(Some(AutoSaveSec::Fifteen));
+                    },
+                );
             });
     }
 
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
         eframe::set_value(storage, eframe::APP_KEY, self);
         self.last_save = Instant::now();
+    }
+}
+
+fn auto_save_to_string(auto_save_sec: Option<AutoSaveSec>) -> Cow<'static, str> {
+    match auto_save_sec {
+        None => Cow::from("Disabled"),
+        Some(auto_save) => Cow::from(auto_save.to_string()),
     }
 }
 
