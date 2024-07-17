@@ -138,7 +138,6 @@ impl TemplateApp {
         if let Some(storage) = frame.storage_mut() {
             if let Some(auto_save) = self.auto_save {
                 if self.last_save.elapsed() >= auto_save.duration() {
-                    use eframe::App as _;
                     self.save(storage);
                 }
             }
@@ -157,7 +156,6 @@ impl TemplateApp {
                 ui.menu_button("File", |ui| {
                     if let Some(storage) = frame.storage_mut() {
                         if ui.button("Save").clicked() {
-                            use eframe::App as _;
                             self.save(storage);
                             ui.close_menu();
                         }
@@ -222,6 +220,11 @@ impl TemplateApp {
                 });
             });
     }
+
+    fn save(&mut self, storage: &mut dyn eframe::Storage) {
+        eframe::set_value(storage, eframe::APP_KEY, self);
+        self.last_save = Instant::now();
+    }
 }
 
 impl eframe::App for TemplateApp {
@@ -271,8 +274,9 @@ impl eframe::App for TemplateApp {
 
     /// Called by the framework to save state before shutdown.
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
-        eframe::set_value(storage, eframe::APP_KEY, self);
-        self.last_save = Instant::now();
+        if self.auto_save.is_some() {
+            self.save(storage);
+        }
     }
 }
 
