@@ -39,7 +39,9 @@ wasm-bindgen-futures = "0.4"
 web-sys = "0.3"
 
 [profile.release]
-opt-level = 2 # fast and small wasm
+opt-level = 3 # fast wasm
+lto = true
+strip = "symbols"
 
 # Optimize all dependencies even in debug builds:
 [profile.dev.package."*"]
