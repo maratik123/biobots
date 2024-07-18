@@ -42,11 +42,12 @@ web-sys = "0.3"
 opt-level = 3 # fast wasm
 lto = true
 strip = "symbols"
+panic = "abort"
+codegen-units = 1
 
 # Optimize all dependencies even in debug builds:
 [profile.dev.package."*"]
 opt-level = 2
-
 
 [patch.crates-io]
 
