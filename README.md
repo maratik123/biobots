@@ -6,7 +6,7 @@ Make sure you are using the latest version of stable rust by running `rustup upd
 
 `cargo run --release`
 
-On Linux you need to first run:
+On Ubuntu Linux you need to first run:
 
 `sudo apt-get install libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev`
 
@@ -26,4 +26,4 @@ We use [Trunk](https://trunkrs.dev/) to build for web target.
    project.
 4. Open `http://127.0.0.1:8080/index.html` in a browser.
 
-You can test the template app at <https://maratik123.github.io/biobots/>.
+You can test this app at <https://maratik123.github.io/biobots/>.

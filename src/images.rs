@@ -32,14 +32,14 @@ impl Default for Images {
 fn create_apple() -> ColorImage {
     let mut apple = create_empty_square(field::CELL_SIZE);
     for y in 0..apple.height() {
+        let y_dist = field::CELL_SIZE_HALF as isize - y as isize;
+        let y_dist_2 = (y_dist * y_dist) as usize;
+
         for x in 0..apple.width() {
-            let (x_dist, y_dist) = (
-                field::CELL_SIZE_HALF as isize - x as isize,
-                field::CELL_SIZE_HALF as isize - y as isize,
-            );
-            if ((x_dist * x_dist) as usize + (y_dist * y_dist) as usize)
-                < field::CELL_SIZE_HALF * field::CELL_SIZE_HALF
-            {
+            let x_dist = field::CELL_SIZE_HALF as isize - x as isize;
+            let x_dist_2 = (x_dist * x_dist) as usize;
+
+            if x_dist_2 + y_dist_2 < field::CELL_SIZE_HALF * field::CELL_SIZE_HALF {
                 apple[(x, y)] = drawing::APPLE_DRAW_COLOR_RGBA;
             }
         }
@@ -114,7 +114,7 @@ impl Default for BotImage {
                 };
                 let range_to_center = 0..field::CELL_SIZE_HALF;
                 let range_from_center = field::CELL_SIZE_HALF..field::CELL_SIZE;
-                let i: Direction = (i as u32).try_into().unwrap();
+                let i = Direction::try_from(i as u32).unwrap();
                 match i {
                     Direction::N => draw::vertical_line(
                         &mut head,
