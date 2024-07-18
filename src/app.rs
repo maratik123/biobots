@@ -51,6 +51,13 @@ impl Display for AutoSaveSec {
     }
 }
 
+fn auto_save_to_str(auto_save_sec: Option<AutoSaveSec>) -> Cow<'static, str> {
+    match auto_save_sec {
+        None => Cow::from("Disabled"),
+        Some(auto_save) => Cow::from(auto_save.to_string()),
+    }
+}
+
 #[derive(Deserialize, Serialize, Eq, PartialEq)]
 #[serde(default)]
 pub struct TemplateApp {
@@ -201,13 +208,13 @@ impl TemplateApp {
                     }
                 });
                 ui.collapsing(
-                    format!("Auto save: {}", auto_save_to_string(self.auto_save)),
+                    format!("Auto save: {}", auto_save_to_str(self.auto_save)),
                     |ui| {
                         let mut radio_value = |auto_save| {
                             ui.radio_value(
                                 &mut self.auto_save,
                                 auto_save,
-                                auto_save_to_string(auto_save),
+                                auto_save_to_str(auto_save),
                             );
                         };
                         radio_value(None);
@@ -222,13 +229,6 @@ impl TemplateApp {
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
         eframe::set_value(storage, eframe::APP_KEY, self);
         self.last_save = Instant::now();
-    }
-}
-
-fn auto_save_to_string(auto_save_sec: Option<AutoSaveSec>) -> Cow<'static, str> {
-    match auto_save_sec {
-        None => Cow::from("Disabled"),
-        Some(auto_save) => Cow::from(auto_save.to_string()),
     }
 }
 
