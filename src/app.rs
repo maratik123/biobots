@@ -313,7 +313,9 @@ fn generate_initial_seed() -> String {
     let mut initial_seed = [0u8; 12];
     rand::thread_rng().fill(&mut initial_seed);
     let mut writer = base64::write::EncoderStringWriter::from_consumer(
-        base64::encoded_len(initial_seed.len(), false).map(String::with_capacity).unwrap_or_default(),
+        base64::encoded_len(initial_seed.len(), false)
+            .map(String::with_capacity)
+            .unwrap_or_default(),
         &general_purpose::STANDARD_NO_PAD,
     );
     writer.write_all(&initial_seed).unwrap();
